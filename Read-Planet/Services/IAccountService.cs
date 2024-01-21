@@ -16,7 +16,7 @@ namespace Read_Planet.Services
 
         Task<bool> SendConfirmationEmailAsync(AppUser user, string confirmEmailAddress);
 
-        Task<bool> SendPasswordResetEmailAsync(AppUser user, string resetPasswordAction);
+        Task<bool> SendPasswordResetEmailAsync(AppUser user, string resetPasswordAddress);
         Task<bool> SendConfirmationEmailAsync2(AppUser user, string confirmEmailAddress);
 
         bool IsLoggedInAsync(ClaimsPrincipal user);

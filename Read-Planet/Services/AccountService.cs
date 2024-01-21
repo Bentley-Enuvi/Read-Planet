@@ -19,17 +19,20 @@ namespace Read_Planet.Services
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ReadPlanetDbContext _context;
         private readonly ITokenGenerator _tokenGenerator;
+        private readonly IMessengerService _messengerService;
         public AccountService(IConfiguration configuration, 
             UserManager<AppUser> userManager, 
             RoleManager<IdentityRole> roleManager, 
             ReadPlanetDbContext context,
-            ITokenGenerator tokenGenerator)
+            ITokenGenerator tokenGenerator,
+            IMessengerService messengerService)
         {
             _config = configuration;
             _userManager = userManager;
             _roleManager = roleManager;
             _context = context;
             _tokenGenerator = tokenGenerator;
+            _messengerService = messengerService;
         }
 
 
@@ -162,22 +165,50 @@ namespace Read_Planet.Services
         }
 
 
-        public Task<bool> SendConfirmationEmailAsync(AppUser user, string confirmEmailAddress)
+        public async Task<bool> SendConfirmationEmailAsync(AppUser user, string confirmEmailAddress)
         {
-            throw new NotImplementedException();
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var confirmationLink = $"{confirmEmailAddress}?token={token}&email={user.Email}";
+            var message = new Message("Confirmation email link", new List<string>() { user.Email },
+                $"<a href=\"{confirmationLink}\">Click to confirm Confirmation email</a>");
+
+            return await _messengerService.Send(message);
         }
 
-        public Task<bool> SendPasswordResetEmailAsync(AppUser user, string resetPasswordAction)
+
+        public async Task<bool> SendConfirmationEmailAsync2(AppUser user, string confirmEmailAddress)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                var confirmationLink = $"{confirmEmailAddress}?token={token}&email={user.Email}";
+
+                var message = new Message(
+                    "Email Confirmation",
+                    new List<string> { user.Email },
+                    $"Dear {user.UserName},\n\nThank you for registering with us. Please confirm your email by clicking on the link: {confirmationLink}"
+                );
+
+                var sendResult = await _messengerService.Send(message);
+
+                return sendResult;
+            }
+            catch (Exception ex)
+            {
+                // Log or handle the exception as needed
+                return false;
+            }
         }
 
-        public Task<bool> SendConfirmationEmailAsync2(AppUser user, string confirmEmailAddress)
+
+        public async Task<bool> SendPasswordResetEmailAsync(AppUser user, string resetPasswordAddress)
         {
-            throw new NotImplementedException();
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var link = $"{resetPasswordAddress}?token={token}&email={user.Email}";
+            var message = new Message("Reset Password link", new List<string>() { user.Email }, $"<a href=\"{link}\">Reset password</a>");
+
+            return await _messengerService.Send(message);
         }
 
-        
-        
     }
 }
