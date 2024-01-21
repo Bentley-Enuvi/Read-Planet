@@ -23,6 +23,7 @@ builder.Services.AddIdentity<AppUser, IdentityRole>().AddEntityFrameworkStores<R
 
 builder.Services.AddControllers();
 builder.Services.AddScoped<ITokenGenerator, TokenGenerator>();
+builder.Services.AddTransient<IMessengerService, MailgunMessengerService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
