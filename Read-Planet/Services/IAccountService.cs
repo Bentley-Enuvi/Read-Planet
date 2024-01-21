@@ -7,10 +7,10 @@ namespace Read_Planet.Services
 {
     public interface IAccountService
     {
-        public string GenerateJWT();
+        //public string GenerateJWT();
 
-        Task<Result<AppUserDto>> SignUp(RegistrationRequestDto regRequestDto);
-        Task<Result<LoginResponseDto>> Login(LoginRequestDto loginRequestDto);
+        Task<string> SignUp(RegistrationRequestDto regRequestDto);
+        Task<LoginResponseDto> LoginAsync(LoginRequestDto loginRequest);
         Task<bool> AssignRole(string email, string roleName);
         Task<List<IdentityRole>> GetAllRoles();
 
@@ -19,7 +19,7 @@ namespace Read_Planet.Services
         Task<bool> SendPasswordResetEmailAsync(AppUser user, string resetPasswordAction);
         Task<bool> SendConfirmationEmailAsync2(AppUser user, string confirmEmailAddress);
 
-        Task<bool> IsLoggedInAsync(ClaimsPrincipal user);
+        bool IsLoggedInAsync(ClaimsPrincipal user);
         Task LogoutAsync();
     }
 }

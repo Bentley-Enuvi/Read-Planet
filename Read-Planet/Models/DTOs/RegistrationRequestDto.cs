@@ -4,20 +4,20 @@ namespace Read_Planet.Models.DTOs
 {
     public class RegistrationRequestDto
     {
-        [Required]
-        [EmailAddress]
+        //[Required]
+        //[EmailAddress]
         public string Email { get; set; }
 
-        [Required]
+        //[Required]
         public string FirstName { get; set; }
 
-        [Required]
+        //[Required]
         public string UserName { get; set; }
 
-        [Required]
+        //[Required]
         public string LastName { get; set; }
 
-        [Required]
+        //[Required]
         public string Password { get; set; }
     }
 }

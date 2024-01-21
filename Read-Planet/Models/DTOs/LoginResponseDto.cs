@@ -4,10 +4,10 @@ namespace Read_Planet.Models.DTOs
 {
     public class LoginResponseDto
     {
-        [Required]
+        //[Required]
         public AppUserDto User { get; set; }
 
-        [Required]
+        //[Required]
         public string Token { get; set; }
     }
 }

@@ -4,6 +4,9 @@ using Read_Planet.Models;
 using Read_Planet.Services;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
+using Azure;
+using Microsoft.IdentityModel.Tokens;
+using Read_Planet.Migrations;
 
 namespace Read_Planet.Controllers
 {
@@ -12,43 +15,86 @@ namespace Read_Planet.Controllers
     public class AccountController : ControllerBase
     {
         private readonly IAccountService _accountService;
-        private readonly IMapper _mapper;
         private readonly UserManager<AppUser> _userManager;
+        protected ResponseObjectDto _response;
 
         public AccountController(IAccountService accountService, 
-            IMapper mapper, UserManager<AppUser> userManager)
+            UserManager<AppUser> userManager)
         {
             _accountService = accountService;
-            _mapper = mapper;
             _userManager = userManager;
+            _response = new();
         }
+
 
         [HttpPost("signup")]
         public async Task<IActionResult> SignUp([FromBody] RegistrationRequestDto regRequest)
         {
-            var registerResult = await _accountService.SignUp(regRequest);
+            var errorMessage = await _accountService.SignUp(regRequest);
 
-            if (registerResult.IsFailure)
+            if (!string.IsNullOrEmpty(errorMessage))
             {
-                return BadRequest(ResponseObjectDto<object>.Failure(registerResult.Errors));
+                _response.IsSuccessful = false;
+                _response.Message = errorMessage;
+                return BadRequest(_response);
             }
 
-            //Add Token to verify the email
-            var user = _mapper.Map<AppUser>(registerResult.Data);
-            var appUrl = $"{Request.Scheme}://{Request.Host}";
-            var confirmEmailEndpoint = $"{appUrl}/confirmemail";
+            return Ok(_response);
+        }
 
-            // Assuming SendConfirmationEmailAsync2 returns a boolean
-            var confirmationEmailSent = await _accountService.SendConfirmationEmailAsync2(user, confirmEmailEndpoint);
 
-            if (!confirmationEmailSent)
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginRequestDto model)
+        {
+            var loginResponse = await _accountService.LoginAsync(model);
+            if (loginResponse.User == null)
             {
-                // Handle the case where email confirmation fails
-                var errorResponse = ResponseObjectDto<object>.Failure(registerResult.Errors);
-                return BadRequest(errorResponse);
+                _response.IsSuccessful = false;
+                _response.Message = "Username or password is incorrect";
+                return BadRequest(_response);
+            }
+            _response.Result = loginResponse;
+            return Ok(_response);
+
+        }
+
+
+
+        [HttpPost("assign-role")]
+        public async Task<IActionResult> GiveRole([FromBody] AssignRoleDto model)
+        {
+            var assignRoleSuccessful = await _accountService.AssignRole(model.Email, model.RoleName.ToUpper());
+            if (!assignRoleSuccessful)
+            {
+                _response.IsSuccessful = false;
+                _response.Message = "Error encountered";
+                return BadRequest(_response);
+            }
+            return Ok(_response);
+        }
+
+
+        [HttpGet("get-all-roles")]
+        public async Task<IActionResult> GetRoles()
+        {
+            var roles = await _accountService.GetAllRoles();
+
+            if (roles == null)
+            {
+                return BadRequest(new ResponseObjectDto
+                {
+                    Message = "Error",
+                    StatusCode = 400
+                });
             }
 
-            return Ok(ResponseObjectDto<object>.Success(registerResult.Data));
+            return Ok(new ResponseObjectDto
+            {
+                StatusCode = 200,
+                IsSuccessful = true
+            });
+            //return Ok(roles);
         }
     }
 }
